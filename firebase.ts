@@ -4,7 +4,7 @@ import { getFirestore } from "firebase-admin/firestore";
 const serviceAccount = {
   type: "service_account",
   project_id: "perfect-secretary-2ff60",
-  private_key_id: "db26b3a569276659a58f53963a37a7006666ff32",
+  private_key_id: process.env.FIREBASE_SECRET_KEY_ID,
   private_key: process.env.FIREBASE_SECRET_KEY,
   client_email: "firebase-adminsdk-ky67r@perfect-secretary-2ff60.iam.gserviceaccount.com",
   client_id: "115579771995354304788",
