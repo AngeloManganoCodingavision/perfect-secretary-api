@@ -10,7 +10,7 @@ export const getAllEvents = (req: any, res: any) => {
     .then(async (response) => {
         const referencedEvents = [] as CalendarEvent[];
         response.forEach( (event) => {
-            const eventDate = new Timestamp(event.data().start.seconds, event.data().start.nanoseconds).toDate();
+            const eventDate = new Timestamp(event.data().start.seconds, event.data().start.nanoseconds).toDate();           
             referencedEvents.push({...event.data() as CalendarEvent, start: eventDate, id: event.id});
         })
         const eventList = await getUserData(referencedEvents);       
@@ -26,8 +26,8 @@ async function getUserData(referencedEvents: CalendarEvent[]) {
     await Promise.all(
         referencedEvents.map(async (event) => {
             const userData = await patientsRef.doc(event.patientRef.path).get();           
-            const patient = {...userData.data(), id: userData.id};
-            const referencedEvent = {...event, patient};
+            const patientRef = {...userData.data(), id: userData.id};
+            const referencedEvent = {...event, patientRef};
             eventList.push(referencedEvent);
         })
     );
