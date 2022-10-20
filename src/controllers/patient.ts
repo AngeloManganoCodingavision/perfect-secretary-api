@@ -4,32 +4,31 @@ import { Patient } from "../models/Patients";
 
 const patientsRef = db.collection('patients');
 
-export const getAllPatients = (req, res) => {
+export const getAllPatients = (req: any, res: any) => {
     patientsRef.where("active", "==", true).get()
     .then((response) => {
-        let list: Patient[] = [];
+        const list: Patient[] = [];
         response.forEach((patient) => {
             list.push({...patient.data() as Patient, id: patient.id });
         });
         res.status(200).json(list);
     })
     .catch((error) => {
-        res.send(error);
+        res.status(500).send(error);
     })
 };
 
-export const addPatient = (req, res) => {
+export const addPatient = (req: any, res: any) => {
     patientsRef.add({...req.body})
     .then((newPatient) => {
         res.status(200).send(newPatient.id);
     })
     .catch((error) => {
-        res.send(error);
+        res.status(500).send(error);
     })
 };
 
-export const updatePatient = (req, res) => {
-    console.log(req.body);    
+export const updatePatient = (req: any, res: any) => {
     patientsRef.doc(req.params.id).update({
         address: req.body.address,
         birthdate: req.body.birthdate,
@@ -48,16 +47,16 @@ export const updatePatient = (req, res) => {
         res.status(200).send({...req.body, id: req.params.id});
     })
     .catch((error) => {
-        res.send(error);
+        res.status(500).send(error);
     })
 };
 
-export const deletePatient = (req, res) => {
+export const deletePatient = (req: any, res: any) => {
     patientsRef.doc(req.params.id).delete()
     .then(() => {
         res.status(200).send('Il paziente è stato correttamente eliminato');
     })
     .catch((error) => {
-        res.send(error);
+        res.status(500).send(error);
     })
 };
