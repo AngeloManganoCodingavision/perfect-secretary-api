@@ -19,7 +19,11 @@ export const getAllPatients = (req: any, res: any) => {
 };
 
 export const addPatient = (req: any, res: any) => {
-    patientsRef.add({...req.body})
+    patientsRef.add({
+        ...req.body, 
+        added: new Date(req.body.added),
+        updated: new Date(req.body.updated)
+    })
     .then((newPatient) => {
         res.status(200).send(newPatient.id);
     })
@@ -30,6 +34,7 @@ export const addPatient = (req: any, res: any) => {
 
 export const updatePatient = (req: any, res: any) => {
     patientsRef.doc(req.params.id).update({
+        added: new Date(req.body.added),
         address: req.body.address,
         birthdate: req.body.birthdate,
         birthplace: req.body.birthplace,
@@ -51,6 +56,7 @@ export const updatePatient = (req: any, res: any) => {
     })
 };
 
+//TODO: cancellare anche lo storico o disattivare
 export const deletePatient = (req: any, res: any) => {
     patientsRef.doc(req.params.id).delete()
     .then(() => {
