@@ -21,6 +21,42 @@ export const getAllEvents = (req: any, res: any) => {
     })
 };
 
+export const addEvent = (req: any, res: any) => {
+    const eventReq = {...req.body, added: new Date(req.body.added), start: new Date(req.body.start), patientRef: db.doc(req.body.patientRef)}
+    eventsRef.add(eventReq)
+    .then((newEvent) => {
+      const event: CalendarEvent = {...eventReq, id: newEvent.id};
+      return getUserData([event]);
+    })
+    .then((referencedEvent) => {      
+        res.status(200).json(referencedEvent[0]);
+    })
+    .catch((error) => {
+        res.status(500).send(error);
+    })
+  }
+
+  export const updateEvent = (req: any, res: any) => {
+    eventsRef.doc(req.params.id).update(req.body)
+    .then(() => {      
+        res.status(200).send('L\'evento è stato correttamente aggiornato');
+    })
+    .catch((error) => {
+        res.status(500).send(error);
+    })
+  }
+
+export const deleteEvent = (req: any, res: any) => {
+    eventsRef.doc(req.params.id).delete()
+    .then(() => {
+        res.status(200).send('L\'evento è stato correttamente eliminato');
+    })
+    .catch((error) => {
+        res.status(500).send(error);
+    })
+};
+
+
 async function getUserData(referencedEvents: CalendarEvent[]): Promise<CalendarEvent[]> {
     try {
         const eventList = [] as CalendarEvent[];
@@ -38,28 +74,3 @@ async function getUserData(referencedEvents: CalendarEvent[]): Promise<CalendarE
         throw new Error(error);
     }
 }
-
-export const addEvent = (req: any, res: any) => {
-    const eventReq = {...req.body, added: new Date(req.body.added), start: new Date(req.body.start), patientRef: db.doc(req.body.patientRef)}
-    eventsRef.add(eventReq)
-    .then((newEvent) => {
-      const event: CalendarEvent = {...eventReq, id: newEvent.id};
-      return getUserData([event]);
-    })
-    .then((referencedEvent) => {      
-        res.status(200).json(referencedEvent[0]);
-    })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
-  }
-
-export const deleteEvent = (req: any, res: any) => {
-    eventsRef.doc(req.params.id).delete()
-    .then(() => {
-        res.status(200).send('L\'evento è stato correttamente eliminato');
-    })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
-};

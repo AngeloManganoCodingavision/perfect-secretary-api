@@ -7,6 +7,6 @@ export interface CalendarEvent {
     isJumped: boolean;
     isPayed: boolean;
     patientRef: DocumentReference | DocumentData;
-    title: string;
     start: Date;
+    title: string;
 }
