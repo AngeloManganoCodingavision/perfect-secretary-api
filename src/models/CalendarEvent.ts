@@ -4,8 +4,7 @@ export interface CalendarEvent {
     id? : string;
     added: Date;
     creator: string;
-    isJumped: boolean;
-    isPayed: boolean;
+    status: 'scheduled' | 'payed' | 'jumped';
     patientRef: DocumentReference | DocumentData;
     start: Date;
     title: string;
