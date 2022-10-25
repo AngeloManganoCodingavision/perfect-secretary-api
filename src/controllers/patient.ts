@@ -36,6 +36,7 @@ export const updatePatient = (req: any, res: any) => {
     patientsRef.doc(req.params.id).update({
         added: new Date(req.body.added),
         address: req.body.address,
+        badges: req.body.badges,
         birthdate: req.body.birthdate,
         birthplace: req.body.birthplace,
         city: req.body.city,

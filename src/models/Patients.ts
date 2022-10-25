@@ -2,6 +2,7 @@ export interface Patient {
     active: boolean;
     added: Date;
     address: string;
+    badges: string[];
     birthdate: string;
     birthplace: string;
     city: string;
