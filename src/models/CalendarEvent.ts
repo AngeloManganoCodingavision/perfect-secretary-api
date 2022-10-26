@@ -5,12 +5,12 @@ export interface CalendarEvent {
     added: Date;
     color: string;
     creator: string;
+    end: Date;
     note?: string;
     partnerRef?: DocumentReference | DocumentData; // get | post
     patientRef: DocumentReference | DocumentData; // get | post
     start: Date;
     status: EventStatus;
-    stop: Date;
     title: string;
     type: EventType;
 }

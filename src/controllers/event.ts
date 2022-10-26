@@ -10,8 +10,9 @@ export const getAllEvents = (req: any, res: any) => {
     .then(async (response) => {
         const referencedEvents = [] as CalendarEvent[];
         response.forEach( (event) => {
-            const eventDate = new Timestamp(event.data().start.seconds, event.data().start.nanoseconds).toDate();          
-            referencedEvents.push({...event.data() as CalendarEvent, start: eventDate, id: event.id});
+            const eventStartDate = new Timestamp(event.data().start.seconds, event.data().start.nanoseconds).toDate();       
+            const eventEndDate = new Timestamp(event.data().end.seconds, event.data().end.nanoseconds).toDate();       
+            referencedEvents.push({...event.data() as CalendarEvent, start: eventStartDate, end: eventEndDate, id: event.id});
         })
         const eventList: CalendarEvent[] = await getUserData(referencedEvents);
         res.status(200).json(eventList);
@@ -22,7 +23,7 @@ export const getAllEvents = (req: any, res: any) => {
 };
 
 export const addEvent = (req: any, res: any) => {
-    const eventReq = {...req.body, added: new Date(req.body.added), start: new Date(req.body.start), patientRef: db.doc(req.body.patientRef), stop: new Date(req.body.stop)}
+    const eventReq = {...req.body, added: new Date(req.body.added), start: new Date(req.body.start), patientRef: db.doc(req.body.patientRef), end: new Date(req.body.end)}
     eventsRef.add(eventReq)
     .then((newEvent) => {
       const event: CalendarEvent = {...eventReq, id: newEvent.id};
