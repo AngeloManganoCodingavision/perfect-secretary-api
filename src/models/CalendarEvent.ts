@@ -3,6 +3,7 @@ import { DocumentData, DocumentReference } from "firebase-admin/firestore";
 export interface CalendarEvent {
     id? : string;
     added: Date;
+    color: string;
     creator: string;
     note?: string;
     partnerRef?: DocumentReference | DocumentData; // get | post
@@ -24,5 +25,6 @@ export enum EventType {
     Visit = 'visit',
     Couple = 'couple',
     Test = 'test',
-    Ctu_ctp = 'ctu/ctp'
+    Ctu_ctp = 'ctu/ctp',
+    Private = 'private'
   }

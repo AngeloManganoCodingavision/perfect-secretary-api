@@ -22,7 +22,7 @@ export const getAllEvents = (req: any, res: any) => {
 };
 
 export const addEvent = (req: any, res: any) => {
-    const eventReq = {...req.body, added: new Date(req.body.added), start: new Date(req.body.start), patientRef: db.doc(req.body.patientRef)}
+    const eventReq = {...req.body, added: new Date(req.body.added), start: new Date(req.body.start), patientRef: db.doc(req.body.patientRef), stop: new Date(req.body.stop)}
     eventsRef.add(eventReq)
     .then((newEvent) => {
       const event: CalendarEvent = {...eventReq, id: newEvent.id};
