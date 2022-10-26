@@ -1,6 +1,6 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { DocumentReference, Timestamp } from "firebase-admin/firestore";
 import db from "../../firebase";
-import { CalendarEvent } from "../models/CalendarEvent";
+import { CalendarEvent, EventType } from "../models/CalendarEvent";
 
 const eventsRef = db.collection('events');
 const patientsRef = db;
@@ -10,10 +10,10 @@ export const getAllEvents = (req: any, res: any) => {
     .then(async (response) => {
         const referencedEvents = [] as CalendarEvent[];
         response.forEach( (event) => {
-            const eventDate = new Timestamp(event.data().start.seconds, event.data().start.nanoseconds).toDate();           
+            const eventDate = new Timestamp(event.data().start.seconds, event.data().start.nanoseconds).toDate();          
             referencedEvents.push({...event.data() as CalendarEvent, start: eventDate, id: event.id});
         })
-        const eventList: CalendarEvent[] = await getUserData(referencedEvents);       
+        const eventList: CalendarEvent[] = await getUserData(referencedEvents);
         res.status(200).json(eventList);
     })
     .catch((error) => {
@@ -64,7 +64,12 @@ async function getUserData(referencedEvents: CalendarEvent[]): Promise<CalendarE
             referencedEvents.map(async (event) => {
                 const userData = await patientsRef.doc(event.patientRef.path).get();               
                 const patientRef = {...userData.data(), id: userData.id};
-                const referencedEvent = {...event, patientRef};
+                let partnerRef = event.partnerRef;
+                if(event.type === EventType.Couple) {
+                    const partnerData = await patientsRef.doc(event.partnerRef!.path as string).get();               
+                    partnerRef = {...partnerData.data(), id: partnerData.id};
+                }
+                const referencedEvent = {...event, patientRef, partnerRef};
                 eventList.push(referencedEvent);
             })
         );
