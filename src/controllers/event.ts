@@ -1,4 +1,4 @@
-import { DocumentReference, Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from "firebase-admin/firestore";
 import db from "../../firebase";
 import { CalendarEvent, EventType } from "../models/CalendarEvent";
 
