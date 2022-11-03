@@ -1,37 +1,88 @@
 import axios from "axios";
+import { CalendarEvent, EventType } from "../models/CalendarEvent";
+import { Patient } from "../models/Patients";
 
-export const sendMessage = (req: any, res: any) => {
-    const messageReq = {
-        "messaging_product": "whatsapp",
-        "to": "393921523928",
-        "type": "template",
-        "template": {
-            "name": "sample_shipping_confirmation",
-            "language": {
-                "code": "en_US"
-            },
-            "components": [
-                {
-                  "type": "body",
-                  "parameters": [
-                    {
-                      "type": "text",
-                      "text": "Your package has been shipped. It will be delivered in 5 business days."
-                    }
-                  ]
-                }
-              ]
-        }
-    }
-    axios.post('https://graph.facebook.com/v15.0/110427305202440/messages', messageReq, {
+export const sendWhatsappMessage = (event: CalendarEvent) => {
+    const messageReq = createMessageJson(event);
+    return axios.post('https://graph.facebook.com/v15.0/110427305202440/messages', messageReq, {
         headers: {
             Authorization: "Bearer " + process.env.WHATSAPP_ACCESS_TOKEN,
         },
     })
-    .then(() => {
-        res.status(200).send('Messaggio di promemoria inviato correttamente');
-    })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+}
+
+const createMessageJson = (event: CalendarEvent) => {
+  const patientRef = event.patientRef as Patient;
+  let messageReq;
+  if(event.type === EventType.Private) {
+    messageReq = {
+      "messaging_product": "whatsapp",
+      "to": "393921523928", //event.patientRef.phoneNumber
+      "type": "template",
+      "template": {
+          "name": "private_appointment",
+          "language": {
+              "code": "it",
+              "policy": "deterministic"
+          },
+          "components": [
+              {
+                "type": "body",
+                "parameters": [
+                  {
+                    "type": "text",
+                    "text":  `${event.start.toLocaleDateString("it")}`
+                  },
+                  {
+                    "type": "text",
+                    "text": `${event.start.toLocaleTimeString('it').slice(0, -3)}`
+                  },
+                  {
+                    "type": "text",
+                    "text": `${event.end.toLocaleTimeString('it').slice(0, -3)}`
+                  },
+                  {
+                    "type": "text",
+                    "text": `${event.note}`
+                  }
+                ]
+              }
+          ]
+      }
+    }
+  } else {
+    messageReq = {
+      "messaging_product": "whatsapp",
+      "to": "393921523928", //event.patientRef.phoneNumber
+      "type": "template",
+      "template": {
+          "name": "appointment",
+          "language": {
+              "code": "it",
+              "policy": "deterministic"
+          },
+          "components": [
+              {
+                "type": "body",
+                "parameters": [
+                  {
+                    "type": "text",
+                    "text": `${patientRef.gender === 'M' ? 'Sig.' : 'Sig.ra'} ${patientRef.name} ${patientRef.lastname}`
+                  },
+                                      {
+                    "type": "text",
+                    "text":  `${event.start.toLocaleDateString("it")}`
+                  },
+                                      {
+                    "type": "text",
+                    "text": `${event.start.toLocaleTimeString('it').slice(0, -3)}`
+                  }
+                ]
+              }
+          ]
+      }
+    }
+  }
+
+  return messageReq;
 }

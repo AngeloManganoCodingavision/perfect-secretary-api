@@ -1,6 +1,7 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { DocumentData, Timestamp } from "firebase-admin/firestore";
 import db from "../../firebase";
 import { CalendarEvent, EventType } from "../models/CalendarEvent";
+import { sendWhatsappMessage } from "./message";
 
 const eventsRef = db.collection('events');
 const patientsRef = db;
@@ -32,13 +33,18 @@ export const addEvent = (req: any, res: any) => {
         end: new Date(req.body.end),
         ...partnerRefProperty
     }
+    let newReferencedEvent: CalendarEvent;
     eventsRef.add(eventReq)
     .then((newEvent) => {
       const event: CalendarEvent = {...eventReq, id: newEvent.id};
       return getUserData([event]);
     })
-    .then((referencedEvent) => {      
-        res.status(200).json(referencedEvent[0]);
+    .then((referencedEvent) => {
+        newReferencedEvent = referencedEvent[0];
+        return sendWhatsappMessage(newReferencedEvent)
+    })
+    .then(() => {      
+        res.status(200).json(newReferencedEvent);
     })
     .catch((error) => {
         res.status(500).send(error);
@@ -71,11 +77,13 @@ async function getUserData(referencedEvents: CalendarEvent[]): Promise<CalendarE
         const eventList = [] as CalendarEvent[];
         await Promise.all(
             referencedEvents.map(async (event) => {
-                const userData = await patientsRef.doc(event.patientRef.path).get();               
+                const eventPatientRef = event.patientRef as DocumentData;
+                const userData = await patientsRef.doc(eventPatientRef.path).get();               
                 const patientRef = {...userData.data(), id: userData.id};
                 let partnerRef = event.partnerRef;
                 if(event.type === EventType.Couple) {
-                    const partnerData = await patientsRef.doc(event.partnerRef!.path as string).get();               
+                    const eventPartnerRef = event.partnerRef as DocumentData;
+                    const partnerData = await patientsRef.doc(eventPartnerRef.path as string).get();               
                     partnerRef = {...partnerData.data(), id: partnerData.id};
                 }
                 const referencedEvent = {...event, patientRef, partnerRef};

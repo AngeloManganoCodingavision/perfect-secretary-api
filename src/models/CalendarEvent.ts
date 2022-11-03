@@ -1,4 +1,5 @@
 import { DocumentData, DocumentReference } from "firebase-admin/firestore";
+import { Patient } from "./Patients";
 
 export interface CalendarEvent {
     id? : string;
@@ -7,8 +8,8 @@ export interface CalendarEvent {
     creator: string;
     end: Date;
     note?: string;
-    partnerRef?: DocumentReference | DocumentData; // get | post
-    patientRef: DocumentReference | DocumentData; // get | post
+    partnerRef?: DocumentReference | DocumentData | Patient; // get | post
+    patientRef: DocumentReference | DocumentData | Patient; // get | post
     start: Date;
     status: EventStatus;
     title: string;
