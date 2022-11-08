@@ -1,14 +1,19 @@
 import bcrypt from 'bcrypt';
 import jwt, { Secret } from 'jsonwebtoken';
 import db from '../../firebase';
+import { CustomError } from '../models/CustomError';
 import { User } from '../models/User';
 
 const usersRef = db.collection('users');
 
-export const handleLogin = (req: any, res: any) => {
+export const handleLogin = (req: any, res: any, next: any) => {
     const { email, password } = req.body;
-    if(!email || !password) {
-        return res.status(400).json({message: 'Email and password are required.'});
+    try {
+        if(!email || !password) {
+            throw new CustomError('Email and password are required.', 400);
+        }
+    } catch (error: any) {
+        return next(error);
     }
     let admin: User | undefined = undefined;
     usersRef.get()
@@ -18,7 +23,7 @@ export const handleLogin = (req: any, res: any) => {
         });
         const isUserExist = admin!.email === email;
         if(!isUserExist) {
-            return;
+            throw new CustomError('L\'email non è registrata.', 401);
         }
         return bcrypt.compare(password, admin!.password);
     })
@@ -39,21 +44,25 @@ export const handleLogin = (req: any, res: any) => {
                     process.env.REFRESH_TOKEN_SECRET as Secret,
                     { expiresIn: '1d' }
                 );
-            res.cookie('jwt', refreshToken, {httpOnly:true, sameSite: 'None', secure: true, maxAge: 24 * 60 * 60 * 1000 })
+            res.cookie('jwt', refreshToken, {httpOnly:true, sameSite: 'None', secure: true, maxAge: 24 * 60 * 60 * 1000 }) // Eliminare la flag secure quando si fa la chiamata non in Https
             res.status(200).json({accessToken});
         } else {
-            res.sendStatus(401);
+            throw new CustomError('La password è sbagliata.', 401);
         }
     })
     .catch((error: any) => {       
-        res.status(500).json({message: error.message});
+        next(error);
     });
 }
 
-export const handleRefreshToken = (req: any, res: any) => {
+export const handleRefreshToken = (req: any, res: any, next: any) => {
     const cookies = req.cookies;
-    if(!cookies?.jwt) {
-        return res.sendStatus(401);
+    try {
+        if(!cookies?.jwt) {
+            throw new CustomError('Token per il refresh non presente', 401);
+        }
+    } catch (error: any) {
+        return next(error);
     }
     const refreshToken = cookies.jwt;
     let admin: User | undefined = undefined;
@@ -66,8 +75,8 @@ export const handleRefreshToken = (req: any, res: any) => {
             refreshToken,
             process.env.REFRESH_TOKEN_SECRET as Secret,
             (err: any) => {
-                if(err) {               
-                    return res.sendStatus(403); //Invalid token
+                if(err) {        
+                    throw new CustomError('Token non valido', 403);       
                 }
                 const accessToken = jwt.sign(
                     {
@@ -83,7 +92,7 @@ export const handleRefreshToken = (req: any, res: any) => {
             }
         )
     })
-    .catch((error: any) => {
-        res.status(500).json({message: error.message});
+    .catch((error: any) => {       
+        next(error);
     });
 }

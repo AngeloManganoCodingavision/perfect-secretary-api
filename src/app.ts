@@ -8,6 +8,7 @@ import eventRoutes from './routes/event';
 import registerRoutes from './routes/register';
 import authRoutes from './routes/auth';
 import verifyRole from "./middleware/verifyRole";
+import errorHandler from "./middleware/errorHandler";
 
 const app = express();
 
@@ -32,5 +33,6 @@ app.use(verifyJWT);
 app.use(verifyRole('admin'));
 app.use('/patient', patientRoutes);
 app.use('/event', eventRoutes);
+app.use(errorHandler);
 
 export default app;
