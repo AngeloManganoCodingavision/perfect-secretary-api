@@ -6,8 +6,8 @@ import { User } from '../models/User';
 const usersRef = db.collection('users');
 
 export const handleLogin = (req: any, res: any) => {
-    const { email, pwd } = req.body;
-    if(!email || !pwd) {
+    const { email, password } = req.body;
+    if(!email || !password) {
         return res.status(400).json({message: 'Email and password are required.'});
     }
     let admin: User | undefined = undefined;
@@ -20,7 +20,7 @@ export const handleLogin = (req: any, res: any) => {
         if(!isUserExist) {
             return;
         }
-        return bcrypt.compare(pwd, admin!.password);
+        return bcrypt.compare(password, admin!.password);
     })
     .then((isPwdMached) => {       
         if(isPwdMached) {

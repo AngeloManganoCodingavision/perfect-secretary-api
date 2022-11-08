@@ -11,7 +11,18 @@ import verifyRole from "./middleware/verifyRole";
 
 const app = express();
 
-app.use(cors());
+const origin =
+  process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_PROD_URL
+    : process.env.FRONTEND_LOCAL_URL;
+
+app.use(cors({
+    origin,
+    preflightContinue: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+  }));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use('/register', registerRoutes);
