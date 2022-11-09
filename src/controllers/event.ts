@@ -1,12 +1,12 @@
 import { DocumentData, Timestamp } from "firebase-admin/firestore";
 import db from "../../firebase";
 import { CalendarEvent, EventType } from "../models/CalendarEvent";
-import { sendWhatsappMessage } from "./message";
+import { sendWhatsappMessage } from "../utils/message";
 
 const eventsRef = db.collection('events');
 const patientsRef = db;
 
-export const getAllEvents = (req: any, res: any) => {
+export const getAllEvents = (req: any, res: any, next: any) => {
     eventsRef.get()
     .then(async (response) => {
         const referencedEvents = [] as CalendarEvent[];
@@ -16,14 +16,14 @@ export const getAllEvents = (req: any, res: any) => {
             referencedEvents.push({...event.data() as CalendarEvent, start: eventStartDate, end: eventEndDate, id: event.id});
         })
         const eventList: CalendarEvent[] = await getUserData(referencedEvents);
-        res.status(200).json(eventList);
+        res.status(200).json({data: eventList});
     })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+    .catch((error) => {       
+        next(error);
+    });
 };
 
-export const addEvent = (req: any, res: any) => {
+export const addEvent = (req: any, res: any, next: any) => {
     const partnerRefProperty = req.body.partnerRef ? { partnerRef:  db.doc(req.body.partnerRef) } : {};
     const eventReq = {
         ...req.body, 
@@ -41,36 +41,35 @@ export const addEvent = (req: any, res: any) => {
     })
     .then((referencedEvent) => {
         newReferencedEvent = referencedEvent[0];
-        return sendWhatsappMessage(newReferencedEvent)
+        return sendWhatsappMessage(newReferencedEvent);
     })
     .then(() => {      
-        res.status(200).json(newReferencedEvent);
+        res.status(200).json({data: newReferencedEvent, message: 'L\'evento è stato correttamente aggiunto'});
     })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+    .catch((error) => {       
+        next(error);
+    });
   }
 
-  export const updateEvent = (req: any, res: any) => {
+  export const updateEvent = (req: any, res: any, next: any) => {
     eventsRef.doc(req.params.id).update(req.body)
     .then(() => {      
-        res.status(200).send('L\'evento è stato correttamente aggiornato');
+        res.status(200).send({message: 'L\'evento è stato correttamente aggiornato'});
     })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+    .catch((error) => {       
+        next(error);
+    });
   }
 
-export const deleteEvent = (req: any, res: any) => {
+export const deleteEvent = (req: any, res: any, next: any) => {
     eventsRef.doc(req.params.id).delete()
     .then(() => {
-        res.status(200).send('L\'evento è stato correttamente eliminato');
+        res.status(200).send({message: 'L\'evento è stato correttamente eliminato'});
     })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+    .catch((error) => {       
+        next(error);
+    });
 };
-
 
 async function getUserData(referencedEvents: CalendarEvent[]): Promise<CalendarEvent[]> {
     try {

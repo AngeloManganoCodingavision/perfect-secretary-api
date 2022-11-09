@@ -4,35 +4,35 @@ import { Patient } from "../models/Patients";
 
 const patientsRef = db.collection('patients');
 
-export const getAllPatients = (req: any, res: any) => {
+export const getAllPatients = (req: any, res: any, next: any) => {
     patientsRef.where("active", "==", true).get()
     .then((response) => {
         const list: Patient[] = [];
         response.forEach((patient) => {
             list.push({...patient.data() as Patient, id: patient.id });
         });
-        res.status(200).json(list);
+        res.status(200).json({data: list});
     })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+    .catch((error) => {       
+        next(error);
+    });
 };
 
-export const addPatient = (req: any, res: any) => {
+export const addPatient = (req: any, res: any, next: any) => {
     patientsRef.add({
         ...req.body, 
         added: new Date(req.body.added),
         updated: new Date(req.body.updated)
     })
     .then((newPatient) => {
-        res.status(200).send(newPatient.id);
+        res.status(200).send({data: newPatient.id, message: 'Paziente aggiunto con successo'});
     })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+    .catch((error) => {       
+        next(error);
+    });
 };
 
-export const updatePatient = (req: any, res: any) => {
+export const updatePatient = (req: any, res: any, next: any) => {
     patientsRef.doc(req.params.id).update({
         added: new Date(req.body.added),
         address: req.body.address,
@@ -50,20 +50,20 @@ export const updatePatient = (req: any, res: any) => {
         updated: FieldValue.serverTimestamp()
     })
     .then(() => {
-        res.status(200).send({...req.body, id: req.params.id});
+        res.status(200).send({data: {...req.body, id: req.params.id}, message: 'Paziente aggiornato con successo'});
     })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+    .catch((error) => {       
+        next(error);
+    });
 };
 
 //TODO: cancellare anche lo storico o disattivare
-export const deletePatient = (req: any, res: any) => {
+export const deletePatient = (req: any, res: any, next: any) => {
     patientsRef.doc(req.params.id).delete()
     .then(() => {
-        res.status(200).send('Il paziente è stato correttamente eliminato');
+        res.status(200).send({message:'Il paziente è stato correttamente eliminato'});
     })
-    .catch((error) => {
-        res.status(500).send(error);
-    })
+    .catch((error) => {       
+        next(error);
+    });
 };

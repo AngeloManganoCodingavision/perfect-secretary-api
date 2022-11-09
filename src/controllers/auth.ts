@@ -50,7 +50,7 @@ export const handleLogin = (req: any, res: any, next: any) => {
             throw new CustomError('La password è sbagliata.', 401);
         }
     })
-    .catch((error: any) => {       
+    .catch((error) => {       
         next(error);
     });
 }
@@ -92,7 +92,7 @@ export const handleRefreshToken = (req: any, res: any, next: any) => {
             }
         )
     })
-    .catch((error: any) => {       
+    .catch((error) => {       
         next(error);
     });
 }
