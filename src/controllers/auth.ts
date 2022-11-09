@@ -15,37 +15,37 @@ export const handleLogin = (req: any, res: any, next: any) => {
     } catch (error: any) {
         return next(error);
     }
-    let admin: User | undefined = undefined;
+    let user: User | undefined = undefined;
     usersRef.get()
     .then((response) => {
-        response.forEach((user) => {
-            admin = user.data() as User;
+        response.forEach((element) => {
+            user = element.data() as User;
         });
-        const isUserExist = admin!.email === email;
+        const isUserExist = user!.email === email;
         if(!isUserExist) {
             throw new CustomError('L\'email non è registrata.', 401);
         }
-        return bcrypt.compare(password, admin!.password);
+        return bcrypt.compare(password, user!.password);
     })
     .then((isPwdMached) => {       
         if(isPwdMached) {
             const accessToken = jwt.sign(
                     {
                         userInfo: {
-                            email: admin!.email,
-                            role: admin!.role
+                            email: user!.email,
+                            role: user!.role
                         }
                     },
                     process.env.ACCESS_TOKEN_SECRET as Secret,
                     { expiresIn: '1h' }
                 );
             const refreshToken = jwt.sign(
-                    {'email': admin!.email},
+                    {'email': user!.email},
                     process.env.REFRESH_TOKEN_SECRET as Secret,
                     { expiresIn: '1d' }
                 );
             res.cookie('jwt', refreshToken, {httpOnly:true, sameSite: 'None', secure: true, maxAge: 24 * 60 * 60 * 1000 }) // Eliminare la flag secure quando si fa la chiamata non in Https
-            res.status(200).json({accessToken});
+            res.status(200).json({data: { accessToken, user}, message: 'Login effettuato'});
         } else {
             throw new CustomError('La password è sbagliata.', 401);
         }
@@ -65,11 +65,11 @@ export const handleRefreshToken = (req: any, res: any, next: any) => {
         return next(error);
     }
     const refreshToken = cookies.jwt;
-    let admin: User | undefined = undefined;
+    let user: User | undefined = undefined;
     usersRef.get()
     .then((response) => {
-        response.forEach((user) => {
-            admin = user.data() as User;
+        response.forEach((element) => {
+            user = element.data() as User;
         });
         jwt.verify(
             refreshToken,
@@ -81,14 +81,14 @@ export const handleRefreshToken = (req: any, res: any, next: any) => {
                 const accessToken = jwt.sign(
                     {
                         userInfo: {
-                            email: admin!.email,
-                            role: admin!.role
+                            email: user!.email,
+                            role: user!.role
                         }
                     },
                     process.env.ACCESS_TOKEN_SECRET as Secret,
                     { expiresIn: '1h' }
                 );
-                res.status(200).json({accessToken});
+                res.status(200).json({data: {accessToken}, message: 'Refresh token effettuato'});
             }
         )
     })
